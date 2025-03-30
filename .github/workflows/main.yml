@@ -1,0 +1,33 @@
+name: Build APK
+on: [push]  # Triggers on every git push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Checkout code
+      - uses: actions/checkout@v4
+
+      # 2. Set up Flutter
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.5'  # Match your local Flutter version
+          channel: 'stable'
+
+      # 3. Install dependencies
+      - run: flutter pub get
+
+      # 4. Build APK (with cache and retry)
+      - name: Build Release APK
+        run: |
+          flutter clean
+          flutter build apk --release --no-tree-shake-icons
+          ls -la build/app/outputs/flutter-apk/  # Verify APK exists
+
+      # 5. Upload APK
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: workout-tracker
+          path: build/app/outputs/flutter-apk/app-release.apk
